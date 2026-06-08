@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TGU 単位管理</title>
+<meta name="theme-color" content="#0f172a">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F7F6F2;--white:#FFFFFF;--ink:#0f172a;--muted:#94a3b8;
+  --border:#E2E0D8;--accent:#0f172a;
+  --green:#16a34a;--yellow:#d97706;--red:#dc2626;
+  --tgu:#1e40af;--tgu-light:#dbeafe;
+  --r:12px;
+}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--ink);min-height:100dvh;padding-bottom:40px}
+
+/* HEADER */
+.hdr{background:var(--ink);color:#fff;padding:18px 18px 14px;position:sticky;top:0;z-index:100}
+.hdr-top{display:flex;align-items:baseline;gap:10px;margin-bottom:2px}
+.hdr h1{font-size:20px;font-weight:900;letter-spacing:-.3px}
+.hdr-en{font-size:9px;color:#64748b;letter-spacing:.18em;font-weight:400}
+.hdr-sub{font-size:11px;color:#94a3b8}
+
+/* SETUP CARD */
+.setup{background:var(--ink);padding:0 18px 18px}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sel-label{font-size:10px;color:#94a3b8;font-weight:700;letter-spacing:.1em;margin-bottom:5px;display:block}
+select{
+  font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:700;
+  width:100%;background:#1e293b;border:1px solid #334155;border-radius:8px;
+  padding:10px 12px;color:#fff;outline:none;-webkit-appearance:none;cursor:pointer;
+}
+select option{background:#1e293b}
+
+/* MAIN */
+.main{padding:14px 16px}
+
+/* SUMMARY */
+.summary{background:var(--ink);border-radius:var(--r);padding:16px;margin-bottom:14px;color:#fff}
+.summary-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.summary-label{font-size:11px;color:#94a3b8;font-weight:700;letter-spacing:.1em}
+.summary-total{font-size:28px;font-weight:900;color:#fff}
+.summary-sub{font-size:12px;color:#64748b;margin-top:2px}
+.progress-wrap{position:relative;height:8px;background:#1e293b;border-radius:4px;overflow:hidden}
+.progress-bar{height:100%;border-radius:4px;transition:width .4s ease;background:var(--green)}
+.progress-nums{display:flex;justify-content:space-between;font-size:11px;color:#475569;margin-top:6px}
+
+/* SECTION CARDS */
+.section{background:var(--white);border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.section-hdr{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none}
+.section-hdr-left{display:flex;align-items:center;gap:10px}
+.section-icon{width:28px;height:28px;border-radius:6px;background:var(--ink);color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.section-title{font-weight:700;font-size:14px}
+.section-badge{display:flex;align-items:center;gap:6px}
+.badge-frac{font-family:monospace;font-size:13px;font-weight:700}
+.badge-ok{color:var(--green)}
+.badge-warn{color:var(--yellow)}
+.badge-ng{color:var(--muted)}
+.chevron{font-size:12px;color:var(--muted);transition:transform .2s}
+.chevron.open{transform:rotate(180deg)}
+.section-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+.section-body.open{display:block}
+
+/* MINI PROGRESS */
+.mini-prog{height:4px;background:#F0EDE8;border-radius:2px;overflow:hidden;margin:8px 0 4px}
+.mini-prog-bar{height:100%;border-radius:2px;transition:width .3s;background:var(--green)}
+
+/* INPUT ROWS */
+.input-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F5F2EE}
+.input-row:last-child{border-bottom:none}
+.input-label{font-size:12px;color:#444;flex:1;line-height:1.4}
+.input-label small{display:block;font-size:10px;color:var(--muted);margin-top:1px}
+.input-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.req-badge{font-size:10px;color:var(--muted);white-space:nowrap}
+.num-input{
+  font-family:'Noto Sans JP',sans-serif;font-size:15px;font-weight:700;
+  width:64px;text-align:right;
+  background:#F7F6F2;border:1.5px solid var(--border);border-radius:8px;
+  padding:6px 8px;color:var(--ink);outline:none;-webkit-appearance:none;
+}
+.num-input:focus{border-color:var(--ink)}
+
+/* NOTE */
+.note{font-size:11px;color:var(--muted);background:#F7F6F2;border-radius:8px;padding:8px 10px;margin-top:10px;line-height:1.7}
+
+/* GPA */
+.gpa-card{background:var(--ink);border-radius:var(--r);color:#fff;padding:16px;margin-bottom:6px}
+.gpa-hero{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px}
+.gpa-num{font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px}
+.gpa-num-sub{font-size:13px;color:#475569;font-weight:400;margin-left:3px}
+.gpa-meta{text-align:right}
+.gpa-meta-row{font-size:11px;color:#475569;margin-bottom:3px}
+.gpa-meta-val{font-size:18px;font-weight:700;color:#94a3b8}
+.gpa-formula-bar{background:#1e293b;border-radius:8px;padding:8px 12px;font-size:11px;color:#475569;margin-bottom:14px;font-family:monospace}
+.gpa-dist{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:10px}
+.gpa-dist-item{text-align:center}
+.gpa-dist-bar-wrap{height:28px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:3px}
+.gpa-dist-bar{width:12px;border-radius:3px 3px 0 0;min-height:2px;transition:height .3s}
+.gpa-dist-label{font-size:9px;color:#475569;font-weight:700}
+.gpa-dist-count{font-size:9px;color:#334155}
+.course-table-wrap{margin-top:12px}
+.course-table-head{display:grid;grid-template-columns:1fr 52px 80px 28px;gap:6px;padding:0 0 6px;border-bottom:1px solid #1e293b;margin-bottom:4px}
+.course-table-head span{font-size:9px;color:#475569;font-weight:700;letter-spacing:.05em}
+.course-row{display:grid;grid-template-columns:1fr 52px 80px 28px;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid #1a2438}
+.course-row:last-child{border-bottom:none}
+.course-name-inp{font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:500;background:#1a2438;border:1px solid #1e293b;border-radius:6px;padding:5px 7px;color:#cbd5e1;outline:none;width:100%}
+.course-name-inp:focus{border-color:#334155}
+.course-name-inp::placeholder{color:#2d3e55}
+.course-credit-inp{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;background:#1a2438;border:1px solid #1e293b;border-radius:6px;padding:5px 6px;color:#fff;outline:none;width:100%;text-align:center;-webkit-appearance:none}
+.course-credit-inp:focus{border-color:#334155}
+.course-grade-sel{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;background:#1a2438;border:1px solid #1e293b;border-radius:6px;padding:5px 6px;color:#fff;outline:none;width:100%;-webkit-appearance:none;cursor:pointer;text-align:center}
+.course-grade-sel:focus{border-color:#334155}
+.course-grade-sel option{background:#1a2438}
+.del-btn{width:24px;height:24px;border-radius:6px;background:#1e293b;border:none;color:#475569;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.del-btn:active{background:#334155;color:#94a3b8}
+.add-course-btn{width:100%;margin-top:10px;padding:10px;background:#1a2438;border:1px dashed #1e293b;border-radius:8px;color:#475569;font-family:'Noto Sans JP',sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:border-color .2s, color .2s}
+.add-course-btn:active{border-color:#334155;color:#64748b}
+.grade-A{color:#16a34a}.grade-B{color:#2563eb}.grade-C{color:#d97706}.grade-D{color:#ea580c}.grade-E{color:#dc2626}
+
+/* FOOTER */
+.footer-note{font-size:10px;color:var(--muted);text-align:center;padding:0 16px;line-height:1.8}
+
+/* TGU badge */
+.tgu-badge{display:inline-block;background:var(--tgu);color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <h1>TGU 単位管理</h1>
+    <span class="hdr-en">TOHOKU GAKUIN CREDIT TRACKER</span>
+  </div>
+  <div class="hdr-sub">卒業要件に対する取得単位を管理できます</div>
+</div>
+
+<div class="setup">
+  <div style="height:14px"></div>
+  <div class="setup-grid" style="margin-bottom:8px">
+    <div>
+      <span class="sel-label">学部</span>
+      <select id="faculty" onchange="onFacultyChange()">
+        <option value="letters_eibun">文学部・英文学科</option>
+        <option value="letters_sogo">文学部・総合人文学科</option>
+        <option value="letters_rekishi">文学部・歴史学科</option>
+        <option value="letters_kyoiku">文学部・教育学科</option>
+        <option value="economics">経済学部</option>
+        <option value="business">経営学部</option>
+        <option value="law">法学部</option>
+        <option value="engineering">工学部</option>
+        <option value="regional">地域総合学部</option>
+        <option value="informatics">情報学部</option>
+        <option value="human">人間科学部</option>
+        <option value="international">国際学部</option>
+      </select>
+    </div>
+    <div>
+      <span class="sel-label">入学年度</span>
+      <select id="entryYear" onchange="renderAll()">
+        <option value="2023" selected>2023年度以降</option>
+        <option value="2020">2020〜2022年度</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="mainArea"></div>
+
+<div class="footer-note">
+  ※ このツールは公式の履修細則をもとに作成していますが、正確な単位管理はMYTGおよび教務課にてご確認ください。GPA計算はTGU公式方式（S=4, A=3, B=2, C=1, D=0）に基づきます。
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━
+// GPA データ（TGU: S=4, A=3, B=2, C=1, D=0）
+// ━━━━━━━━━━━━━━━━━━━━━
+const GP = { S:4, A:3, B:2, C:1, D:0 };
+const GRADE_LABELS = ['S','A','B','C','D'];
+const GRADE_COLORS = { S:'#7c3aed', A:'#16a34a', B:'#2563eb', C:'#d97706', D:'#dc2626' };
+
+let courses = [];
+let nextId = 1;
+
+function addCourse(name='', credit=2, grade='A') {
+  courses.push({ id: nextId++, name, credit, grade });
+}
+function removeCourse(id) {
+  courses = courses.filter(c => c.id !== id);
+}
+function calcGPA() {
+  if (courses.length === 0) return { gpa: null, totalCredits: 0, totalPoints: 0 };
+  let totalCredits = 0, totalPoints = 0;
+  courses.forEach(c => {
+    const cr = parseInt(c.credit) || 0;
+    const gp = GP[c.grade] ?? 0;
+    totalCredits += cr;
+    totalPoints += cr * gp;
+  });
+  const gpa = totalCredits > 0 ? totalPoints / totalCredits : null;
+  return { gpa, totalCredits, totalPoints };
+}
+function gpaColor(gpa) {
+  if (gpa === null) return '#475569';
+  if (gpa >= 3.5) return '#7c3aed';
+  if (gpa >= 3.0) return '#16a34a';
+  if (gpa >= 2.0) return '#d97706';
+  return '#dc2626';
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━
+// 卒業要件データ（2023年度以降入学生）
+// ━━━━━━━━━━━━━━━━━━━━━
+// 構造: { total, sections: [{id, title, items: [{id, label, req, note?}], note?}] }
+// 各学部の2023年度入学生版
+const REQS = {
+  // ── 文学部・英文学科 ──
+  letters_eibun: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位必要。キリスト教学A〜Dを含む。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（必修・英語）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:4},
+        ], note:'合計8単位。'},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1_hissu',  label:'第１類 必修科目', req:4},
+          {id:'sen1_hissmu', label:'第１類 選択必修科目', req:4},
+          {id:'sen1_sen',    label:'第１類 選択科目', req:12},
+          {id:'sen2_hissu',  label:'第２類 必修科目（概説）', req:8},
+          {id:'sen2_senshu', label:'第２類 専修分野必修（講読・演習）', req:12},
+          {id:'sen34',       label:'第３・４類 専修分野選択科目', req:20},
+          {id:'sen7',        label:'第７類（卒業論文等）', req:2},
+        ], note:'専修分野は2年次から英米文学・英語学の2分野から1つを選択。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・専門他学部等）', req:20},
+        ], note:'外国語第2・3類、保健体育、留学科目、他学部専門等から20単位。'},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ], note:'合計34単位。地域教育科目2単位含む。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1_hissu',  label:'第１類 必修科目', req:4},
+          {id:'sen1_hissmu', label:'第１類 選択必修科目', req:4},
+          {id:'sen1_sen',    label:'第１類 選択科目', req:12},
+          {id:'sen2_hissu',  label:'第２〜４類 必修科目', req:12},
+          {id:'sen2_senshu', label:'第２〜４類 専修分野必修', req:12},
+          {id:'sen34',       label:'第２〜４類 専修分野選択', req:16},
+          {id:'sen7',        label:'第７類（卒業論文等）', req:2},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・専門他学部等）', req:20},
+        ]},
+      ]
+    }
+  },
+
+  // ── 文学部・総合人文学科 ──
+  letters_sogo: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ], note:'合計6単位。'},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1', label:'第１類（必修）', req:4},
+          {id:'sen234', label:'第２〜４類（思想・哲学／文化・芸術／宗教・神学）', req:38},
+          {id:'sen567', label:'第５〜７類（演習・卒業研究等）', req:4},
+          {id:'sen_rest', label:'その他専門科目（上記以外）', req:8},
+        ], note:'合計54単位。いずれかの類で26単位以上取得で専修修了認定。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:30},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ], note:'合計34単位。地域教育科目2単位含む。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1', label:'第１類', req:4},
+          {id:'sen234', label:'第２〜４類', req:38},
+          {id:'sen567', label:'第５〜７類', req:12},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:28},
+        ]},
+      ]
+    }
+  },
+
+  // ── 文学部・歴史学科 ──
+  letters_rekishi: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1', label:'第１類（演習）', req:12},
+          {id:'sen2', label:'第２類（講義）', req:32},
+          {id:'sen3', label:'第３類（講読・実習）', req:6},
+          {id:'sen4', label:'第４類（隣接科目）', req:4},
+        ], note:'合計54単位。同一分野で16単位以上で専修修了認定。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:30},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ], note:'合計34単位。地域教育科目2単位含む。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1', label:'第１類（演習）', req:12},
+          {id:'sen2', label:'第２類（講義）', req:32},
+          {id:'sen3', label:'第３類（講読・実習）', req:8},
+          {id:'sen4', label:'第４類（隣接科目）', req:4},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:26},
+        ]},
+      ]
+    }
+  },
+
+  // ── 文学部・教育学科 ──
+  letters_kyoiku: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:2},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:2},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:2},
+          {id:'kyo_other',  label:'共通教養 その他', req:2},
+        ], note:'合計30単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1', label:'第１類（教育学） 必修8単位含む', req:10},
+          {id:'sen2', label:'第２類（児童教育） 必修18単位含む', req:24},
+          {id:'sen3', label:'第３類（英語教育） 必修18単位含む', req:24},
+          {id:'sen4', label:'第４類（異文化理解教育）', req:6},
+          {id:'sen5', label:'第５類（教職実践）', req:6},
+          {id:'sen6', label:'第６類（演習・卒業研究） 必修8単位', req:8},
+        ], note:'合計78単位。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:12},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:10},
+          {id:'gakka',    label:'学科教養科目', req:10},
+        ], note:'合計30単位。地域教育科目2単位含む。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen1', label:'第１類（教育学）', req:12},
+          {id:'sen2', label:'第２類（児童教育）', req:26},
+          {id:'sen3', label:'第３類（英語教育）', req:24},
+          {id:'sen4', label:'第４類（異文化理解教育）', req:6},
+          {id:'sen5', label:'第５類（教職実践）', req:10},
+          {id:'sen6', label:'第６類（演習・卒業研究）', req:6},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:2},
+        ]},
+      ]
+    }
+  },
+
+  // ── 経済学部 ──
+  economics: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu', label:'必修科目', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目（コース必修）', req:16},
+          {id:'sen_sen', label:'選択科目', req:20},
+        ], note:'合計52単位以上。経済学科・マネジメント学科で科目名称が異なります。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:28},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu', label:'必修科目', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目', req:16},
+          {id:'sen_sen', label:'選択科目', req:20},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:28},
+        ]},
+      ]
+    }
+  },
+
+  // ── 経営学部 ──
+  business: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu', label:'必修科目（経営学入門等）', req:14},
+          {id:'sen_senmitsu', label:'選択必修科目（演習含む）', req:16},
+          {id:'sen_sen', label:'選択科目', req:22},
+        ], note:'合計52単位以上。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:28},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ]},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu', label:'必修科目', req:14},
+          {id:'sen_senmitsu', label:'選択必修科目', req:16},
+          {id:'sen_sen', label:'選択科目', req:22},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:28},
+        ]},
+      ]
+    }
+  },
+
+  // ── 法学部 ──
+  law: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu', label:'必修科目（法律基礎等）', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目（演習・ゼミ）', req:12},
+          {id:'sen_sen', label:'選択科目（各法分野）', req:24},
+        ], note:'合計52単位以上。法律学科・政治政策学科。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:28},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ]},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu', label:'必修科目', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目', req:12},
+          {id:'sen_sen', label:'選択科目', req:24},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:28},
+        ]},
+      ]
+    }
+  },
+
+  // ── 工学部 ──
+  engineering: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:2},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:2},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:2},
+        ], note:'合計28単位（工学部は教養区分が一部異なる）。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目（学科別）', items:[
+          {id:'sen_kisso', label:'専門基礎科目（数学・物理等）', req:20},
+          {id:'sen_core',  label:'専門コア科目（学科必修）', req:30},
+          {id:'sen_adv',   label:'専門応用・演習・卒業研究', req:20},
+        ], note:'電気電子・情報基盤／機械知能／環境建設／生命科学の各学科で科目名が異なります。合計70単位以上。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:16},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:14},
+        ]},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_kisso', label:'専門基礎科目', req:20},
+          {id:'sen_core',  label:'専門コア科目', req:30},
+          {id:'sen_adv',   label:'専門応用・卒業研究', req:20},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:16},
+        ]},
+      ]
+    }
+  },
+
+  // ── 地域総合学部 ──
+  regional: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'必修科目（地域コミュニティ／政策デザイン）', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目', req:16},
+          {id:'sen_sen',     label:'選択科目・演習・フィールドワーク', req:20},
+        ], note:'合計52単位以上。地域コミュニティ学科・政策デザイン学科で異なります。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:28},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ]},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'必修科目', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目', req:16},
+          {id:'sen_sen',     label:'選択科目', req:20},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:28},
+        ]},
+      ]
+    }
+  },
+
+  // ── 情報学部（データサイエンス学科）──
+  informatics: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'専門必修科目（数学・プログラミング等）', req:20},
+          {id:'sen_senmitsu', label:'選択必修科目（データ分析等）', req:16},
+          {id:'sen_adv',     label:'演習・プロジェクト・卒業研究', req:16},
+        ], note:'合計52単位以上。データサイエンス学科。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:28},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ]},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'専門必修科目', req:20},
+          {id:'sen_senmitsu', label:'選択必修科目', req:16},
+          {id:'sen_adv',     label:'演習・卒業研究', req:16},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:28},
+        ]},
+      ]
+    }
+  },
+
+  // ── 人間科学部 ──
+  human: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語必修）', req:4},
+          {id:'gaigo2', label:'第２類（選択外国語）', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'専門必修科目（心理学基礎等）', req:18},
+          {id:'sen_senmitsu', label:'選択必修科目（コース）', req:16},
+          {id:'sen_adv',     label:'演習・実習・卒業研究', req:16},
+        ], note:'合計50単位以上。人間科学科（心理行動科学・社会文化環境）。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:30},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ]},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類', req:4},{id:'gaigo2', label:'第２類', req:2},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'専門必修科目', req:18},
+          {id:'sen_senmitsu', label:'選択必修科目', req:16},
+          {id:'sen_adv',     label:'演習・卒業研究', req:16},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:30},
+        ]},
+      ]
+    }
+  },
+
+  // ── 国際学部 ──
+  international: {
+    2023: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:6},
+          {id:'tg_kadai', label:'TGベーシック 課題探究', req:6},
+          {id:'kyo_jimbun', label:'共通教養 人文系', req:4},
+          {id:'kyo_shakai', label:'共通教養 社会系', req:4},
+          {id:'kyo_shizen', label:'共通教養 自然系', req:4},
+        ], note:'合計34単位。'},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語強化必修）', req:8},
+          {id:'gaigo2', label:'第２類（第二外国語）', req:4},
+        ], note:'国際学部は英語単位数が多い。合計12単位。'},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'専門必修科目（国際関係・異文化等）', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目（留学・演習）', req:14},
+          {id:'sen_adv',     label:'選択科目・卒業論文', req:18},
+        ], note:'合計48単位以上。国際教養学科。'},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由（外国語・体育・留学・他学部等）', req:24},
+        ]},
+      ]
+    },
+    2020: {
+      total: 124,
+      sections: [
+        { id:'kyo', title:'教養教育科目', items:[
+          {id:'tg_human', label:'TGベーシック 人間的基礎', req:10},
+          {id:'tg_chis',  label:'TGベーシック 知的基礎', req:8},
+          {id:'gakka',    label:'学科教養科目', req:16},
+        ]},
+        { id:'gaigo', title:'外国語科目', items:[
+          {id:'gaigo1', label:'第１類（英語）', req:8},
+          {id:'gaigo2', label:'第２類（第二外国語）', req:4},
+        ]},
+        { id:'sen', title:'専門教育科目', items:[
+          {id:'sen_hissu',   label:'専門必修科目', req:16},
+          {id:'sen_senmitsu', label:'選択必修科目', req:14},
+          {id:'sen_adv',     label:'選択科目・卒業論文', req:18},
+        ]},
+        { id:'jiyu', title:'自由選択枠', items:[
+          {id:'jiyu_all', label:'選択自由', req:24},
+        ]},
+      ]
+    }
+  },
+};
+
+// ━━━━━━━━━━━━━━━━━━━━━
+// State
+// ━━━━━━━━━━━━━━━━━━━━━
+let state = {};
+function getVal(id) { return parseInt(state[id] || 0) || 0; }
+
+function getConfig() {
+  const faculty = document.getElementById('faculty').value;
+  const year = parseInt(document.getElementById('entryYear').value);
+  const req = REQS[faculty] && REQS[faculty][year] ? REQS[faculty][year] : REQS[faculty][2023];
+  return { faculty, year, req };
+}
+
+// ── 学部変更時にstateをリセット ──
+function onFacultyChange() {
+  state = {};
+  courses = [];
+  nextId = 1;
+  renderAll();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━
+// 開閉状態管理
+// ━━━━━━━━━━━━━━━━━━━━━
+let openSections = new Set();
+function saveOpenSections() {
+  openSections = new Set();
+  document.querySelectorAll('.section-body.open').forEach(body => {
+    const hdr = body.previousElementSibling;
+    if (hdr && hdr.dataset.secId) openSections.add(hdr.dataset.secId);
+  });
+}
+function restoreOpenSections() {
+  document.querySelectorAll('.section-hdr').forEach(hdr => {
+    if (openSections.has(hdr.dataset.secId)) {
+      hdr.nextElementSibling.classList.add('open');
+      const ch = hdr.querySelector('.chevron');
+      if (ch) ch.classList.add('open');
+    }
+  });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━
+// GPA HTML builder
+// ━━━━━━━━━━━━━━━━━━━━━
+function buildGPASection() {
+  const { gpa, totalCredits, totalPoints } = calcGPA();
+  const gpaStr = gpa !== null ? gpa.toFixed(2) : '—';
+  const col = gpaColor(gpa);
+  const dist = { S:0, A:0, B:0, C:0, D:0 };
+  courses.forEach(c => { if (dist[c.grade] !== undefined) dist[c.grade]++; });
+  const maxDist = Math.max(1, ...Object.values(dist));
+  const distHTML = GRADE_LABELS.map(g => {
+    const h = Math.round((dist[g] / maxDist) * 24);
+    return `<div class="gpa-dist-item">
+      <div class="gpa-dist-bar-wrap">
+        <div class="gpa-dist-bar" style="height:${Math.max(2,h)}px;background:${GRADE_COLORS[g]}"></div>
+      </div>
+      <div class="gpa-dist-label" style="color:${GRADE_COLORS[g]}">${g}</div>
+      <div class="gpa-dist-count">${dist[g]}</div>
+    </div>`;
+  }).join('');
+  const rowsHTML = courses.map(c => {
+    const gradeOpts = GRADE_LABELS.map(g =>
+      `<option value="${g}" ${c.grade===g?'selected':''}>${g}</option>`
+    ).join('');
+    return `<div class="course-row" data-cid="${c.id}">
+      <input class="course-name-inp" type="text" placeholder="科目名（任意）" value="${escHtml(c.name)}" data-field="name" data-cid="${c.id}">
+      <input class="course-credit-inp" type="number" inputmode="numeric" min="1" max="9" value="${c.credit}" data-field="credit" data-cid="${c.id}">
+      <select class="course-grade-sel" data-field="grade" data-cid="${c.id}">${gradeOpts}</select>
+      <button class="del-btn" data-del="${c.id}">×</button>
+    </div>`;
+  }).join('');
+  return `
+  <div class="gpa-card">
+    <div class="gpa-hero">
+      <div>
+        <div style="font-size:10px;color:#475569;font-weight:700;letter-spacing:.1em;margin-bottom:4px">GPA（累積）</div>
+        <div class="gpa-num" style="color:${col}">${gpaStr}<span class="gpa-num-sub">/ 4.0</span></div>
+      </div>
+      <div class="gpa-meta">
+        <div class="gpa-meta-row">総履修単位</div>
+        <div class="gpa-meta-val">${totalCredits} <span style="font-size:11px">単位</span></div>
+        <div class="gpa-meta-row" style="margin-top:6px">グレードポイント計</div>
+        <div class="gpa-meta-val">${totalPoints} <span style="font-size:11px">pts</span></div>
+      </div>
+    </div>
+    <div class="gpa-formula-bar">GPA = GP計(${totalPoints}) ÷ 総単位(${totalCredits}) = ${gpaStr} ｜ S=4, A=3, B=2, C=1, D=0</div>
+    <div class="gpa-dist">${distHTML}</div>
+    <div class="course-table-wrap">
+      <div class="course-table-head">
+        <span>科目名</span><span style="text-align:center">単位</span><span style="text-align:center">成績</span><span></span>
+      </div>
+      ${rowsHTML}
+      <button class="add-course-btn" id="addCourseBtn">＋ 科目を追加</button>
+    </div>
+  </div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━
+// Section & input helpers
+// ━━━━━━━━━━━━━━━━━━━━━
+function makeSection(id, title, got, req, bodyHTML, isGPA=false) {
+  let badge, miniProgHTML;
+  if (isGPA) {
+    const { gpa } = calcGPA();
+    const col = gpaColor(gpa);
+    const gpaStr = gpa !== null ? gpa.toFixed(2) : '—';
+    const pct = gpa !== null ? Math.min(100, Math.round(gpa/4*100)) : 0;
+    badge = `<span class="badge-frac" style="color:${col}">GPA ${gpaStr}</span>`;
+    miniProgHTML = `<div class="mini-prog"><div class="mini-prog-bar" style="width:${pct}%;background:${col}"></div></div>`;
+  } else {
+    const pct = req > 0 ? Math.min(100, Math.round(got/req*100)) : 0;
+    const done = got >= req;
+    const col = done ? 'var(--green)' : got > 0 ? 'var(--yellow)' : 'var(--muted)';
+    badge = `<span class="badge-frac" style="color:${col}">${got}/${req}</span>`;
+    miniProgHTML = `<div class="mini-prog"><div class="mini-prog-bar" style="width:${pct}%;background:${col}"></div></div>`;
+  }
+  return `
+  <div class="section">
+    <div class="section-hdr" data-sec-id="${id}">
+      <div class="section-hdr-left">
+        <div class="section-icon">${isGPA ? 'G' : title.charAt(0)}</div>
+        <div>
+          <div class="section-title">${title}</div>
+          ${miniProgHTML}
+        </div>
+      </div>
+      <div class="section-badge">${badge}<span class="chevron">▼</span></div>
+    </div>
+    <div class="section-body">${bodyHTML}</div>
+  </div>`;
+}
+
+function makeInputRow(id, label, req, required=false) {
+  const val = state[id] || '';
+  const reqText = req !== null ? `/ ${req}単位${required?'（必修）':''}` : '';
+  return `
+  <div class="input-row">
+    <div class="input-label">${label}</div>
+    <div class="input-right">
+      <span class="req-badge">${reqText}</span>
+      <input class="num-input" type="number" inputmode="numeric" min="0" max="99" placeholder="0" data-id="${id}" value="${val}">
+    </div>
+  </div>`;
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━
+// Main render
+// ━━━━━━━━━━━━━━━━━━━━━
+function renderAll() {
+  saveOpenSections();
+  const { req } = getConfig();
+  const totalReq = req.total;
+  const facultyEl = document.getElementById('faculty');
+  const facultyName = facultyEl.options[facultyEl.selectedIndex].text;
+
+  // 各セクションのgot計算
+  let totalGot = 0;
+  const secGots = {};
+  req.sections.forEach(sec => {
+    let got = 0;
+    sec.items.forEach(item => { got += Math.min(getVal(item.id), item.req); });
+    const secReq = sec.items.reduce((a, b) => a + b.req, 0);
+    secGots[sec.id] = { got: Math.min(got, secReq), req: secReq };
+    totalGot += secGots[sec.id].got;
+  });
+  totalGot = Math.min(totalGot, totalReq);
+  const pct = Math.min(100, Math.round(totalGot / totalReq * 100));
+
+  // セクションHTML生成
+  const sectionsHTML = req.sections.map(sec => {
+    const { got, req: secReq } = secGots[sec.id];
+    const bodyHTML = `
+      ${sec.items.map(item => makeInputRow(item.id, item.label, item.req)).join('')}
+      ${sec.note ? `<div class="note">${sec.note}</div>` : ''}
+    `;
+    return makeSection(sec.id, sec.title, got, secReq, bodyHTML);
+  }).join('');
+
+  document.getElementById('mainArea').innerHTML = `
+    <!-- GPA -->
+    ${makeSection('gpa-sec', 'GPA 計算', null, null, buildGPASection(), true)}
+
+    <!-- サマリー -->
+    <div class="summary">
+      <div class="summary-top">
+        <div>
+          <div class="summary-label">卒業まで</div>
+          <div class="summary-total">${Math.max(0, totalReq - totalGot)}<span style="font-size:15px;font-weight:400;color:#94a3b8"> 単位</span></div>
+          <div class="summary-sub">${totalGot} / ${totalReq} 単位取得済 (${pct}%)</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:10px;color:#64748b;margin-bottom:4px">${facultyName}</div>
+          <div style="font-size:10px;color:#64748b">卒業要件: ${totalReq}単位</div>
+        </div>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>=60?'var(--yellow)':'var(--red)'}"></div></div>
+      <div class="progress-nums"><span>0</span><span>${totalReq}</span></div>
+    </div>
+
+    ${sectionsHTML}
+  `;
+
+  // イベント登録
+  document.querySelectorAll('.num-input').forEach(inp => {
+    inp.addEventListener('input', () => { state[inp.dataset.id] = parseInt(inp.value) || 0; });
+    inp.addEventListener('blur', () => { renderAll(); });
+    if (state[inp.dataset.id] !== undefined) inp.value = state[inp.dataset.id];
+  });
+  document.querySelectorAll('.section-hdr').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const body = hdr.nextElementSibling;
+      const ch = hdr.querySelector('.chevron');
+      body.classList.toggle('open');
+      ch.classList.toggle('open');
+    });
+  });
+  document.querySelectorAll('.course-name-inp').forEach(el => {
+    el.addEventListener('input', () => {
+      const course = courses.find(c => c.id === parseInt(el.dataset.cid));
+      if (course) course.name = el.value;
+    });
+    el.addEventListener('blur', () => { openSections.add('gpa-sec'); renderAll(); });
+  });
+  document.querySelectorAll('.course-credit-inp, .course-grade-sel').forEach(el => {
+    el.addEventListener('input', () => {
+      const cid = parseInt(el.dataset.cid);
+      const course = courses.find(c => c.id === cid);
+      if (!course) return;
+      if (el.dataset.field === 'credit') course.credit = parseInt(el.value) || 0;
+      if (el.dataset.field === 'grade')  course.grade  = el.value;
+      openSections.add('gpa-sec');
+      renderAll();
+    });
+  });
+  const addBtn = document.getElementById('addCourseBtn');
+  if (addBtn) addBtn.addEventListener('click', () => {
+    addCourse();
+    openSections.add('gpa-sec');
+    renderAll();
+  });
+  document.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      removeCourse(parseInt(btn.dataset.del));
+      openSections.add('gpa-sec');
+      renderAll();
+    });
+  });
+
+  restoreOpenSections();
+}
+
+// 起動
+renderAll();
+</script>
+</body>
+</html>
