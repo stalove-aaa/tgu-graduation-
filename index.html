@@ -125,17 +125,178 @@ select option{background:#1e293b}
 
 /* TGU badge */
 .tgu-badge{display:inline-block;background:var(--tgu);color:#fff;font-size:9px;font-weight:700;letter-spacing:.05em;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
+
+/* HELP BUTTON */
+.help-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;font-family:'Noto Sans JP',sans-serif;font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;cursor:pointer;letter-spacing:.03em;white-space:nowrap;flex-shrink:0}
+.help-btn:active{background:rgba(255,255,255,.22)}
+
+/* HELP OVERLAY */
+.help-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.help-overlay.open{display:block}
+.help-sheet{background:#fff;border-radius:20px 20px 0 0;min-height:92vh;margin-top:40px;padding:0 0 60px;animation:slideUp .28s cubic-bezier(.22,.88,.36,1)}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.help-drag{width:40px;height:4px;background:#E2E0D8;border-radius:2px;margin:12px auto 0}
+.help-hdr{background:var(--ink);color:#fff;padding:20px 18px 18px;border-radius:20px 20px 0 0}
+.help-hdr-top{display:flex;align-items:center;justify-content:space-between}
+.help-title{font-size:18px;font-weight:900;letter-spacing:-.3px}
+.help-close{width:32px;height:32px;background:rgba(255,255,255,.12);border:none;border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.help-close:active{background:rgba(255,255,255,.25)}
+.help-sub{font-size:11px;color:#94a3b8;margin-top:4px}
+.help-body{padding:20px 16px 0}
+.step-list{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+.step-card{background:var(--bg);border-radius:14px;padding:16px;display:flex;gap:14px;align-items:flex-start}
+.step-num{width:36px;height:36px;border-radius:10px;background:var(--ink);color:#fff;font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-title{font-size:14px;font-weight:700;margin-bottom:4px}
+.step-desc{font-size:12px;color:#64748b;line-height:1.7}
+.step-chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.step-chip{background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--ink)}
+.info-section{margin-bottom:20px}
+.info-label{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.info-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info-card{background:var(--bg);border-radius:12px;padding:12px}
+.info-card-icon{font-size:22px;margin-bottom:6px}
+.info-card-title{font-size:12px;font-weight:700;margin-bottom:3px}
+.info-card-desc{font-size:11px;color:#64748b;line-height:1.6}
+.gpa-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;border-radius:10px;overflow:hidden}
+.gpa-table th{background:var(--ink);color:#fff;padding:8px 10px;font-weight:700;text-align:center}
+.gpa-table td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--border)}
+.gpa-table tr:last-child td{border-bottom:none}
+.gpa-table tr:nth-child(even) td{background:#F7F6F2}
+.warn-box{background:#fef3c7;border:1px solid #fcd34d;border-radius:10px;padding:12px 14px;font-size:12px;color:#92400e;line-height:1.7;margin-bottom:16px}
 </style>
 </head>
 <body>
 
 <div class="hdr">
-  <div class="hdr-top">
-    <h1>TGU 単位管理</h1>
-    <span class="hdr-en">TOHOKU GAKUIN CREDIT TRACKER</span>
+  <div class="hdr-top" style="justify-content:space-between;align-items:center">
+    <div style="display:flex;align-items:baseline;gap:10px">
+      <h1>TGU 単位管理</h1>
+      <span class="hdr-en">TOHOKU GAKUIN CREDIT TRACKER</span>
+    </div>
+    <button class="help-btn" onclick="openHelp()">？ 使い方</button>
   </div>
   <div class="hdr-sub">卒業要件に対する取得単位を管理できます</div>
 </div>
+
+<!-- HELP OVERLAY -->
+<div class="help-overlay" id="helpOverlay" onclick="closeHelpOutside(event)">
+  <div class="help-sheet" id="helpSheet">
+    <div class="help-drag"></div>
+    <div class="help-hdr">
+      <div class="help-hdr-top">
+        <div class="help-title">📖 使い方ガイド</div>
+        <button class="help-close" onclick="closeHelp()">✕</button>
+      </div>
+      <div class="help-sub">TGU 単位管理ツールの使い方を説明します</div>
+    </div>
+    <div class="help-body">
+
+      <!-- STEP -->
+      <div class="info-section">
+        <div class="info-label">STEP BY STEP</div>
+        <div class="step-list">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div>
+              <div class="step-title">🏫 学部・入学年度を選ぶ</div>
+              <div class="step-desc">画面上部のセレクトボックスで自分の<strong>学部・学科</strong>と<strong>入学年度</strong>を選択してください。学部を変えると卒業要件の項目が自動で切り替わります。</div>
+              <div class="step-chips">
+                <span class="step-chip">文学部・英文学科</span>
+                <span class="step-chip">経済学部</span>
+                <span class="step-chip">工学部 など</span>
+              </div>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div>
+              <div class="step-title">📊 各カテゴリの単位数を入力</div>
+              <div class="step-desc">「教養教育科目」「外国語科目」「専門教育科目」など各セクションをタップして展開し、<strong>取得済みの単位数</strong>を入力します。数字の横に「/ ○○単位」と必要数が表示されます。</div>
+              <div class="step-chips">
+                <span class="step-chip">▼ タップで展開</span>
+                <span class="step-chip">数字を入力</span>
+              </div>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div>
+              <div class="step-title">📈 卒業までの残り単位を確認</div>
+              <div class="step-desc">サマリーカードに<strong>「卒業まで○単位」</strong>と残り単位数とプログレスバーが表示されます。緑になれば卒業要件クリア！</div>
+              <div class="step-chips">
+                <span class="step-chip" style="color:var(--green)">🟢 達成</span>
+                <span class="step-chip" style="color:var(--yellow)">🟡 途中</span>
+                <span class="step-chip" style="color:var(--red)">🔴 未着手</span>
+              </div>
+            </div>
+          </div>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <div>
+              <div class="step-title">🎓 GPAを計算する</div>
+              <div class="step-desc">「GPA 計算」セクションを展開して<strong>科目名・単位数・成績</strong>を入力すると累積GPAが自動計算されます。「＋ 科目を追加」で科目を増やせます。</div>
+              <div class="step-chips">
+                <span class="step-chip" style="color:#7c3aed;font-weight:900">S=4</span>
+                <span class="step-chip" style="color:var(--green);font-weight:900">A=3</span>
+                <span class="step-chip" style="color:#2563eb;font-weight:900">B=2</span>
+                <span class="step-chip" style="color:var(--yellow);font-weight:900">C=1</span>
+                <span class="step-chip" style="color:var(--red);font-weight:900">D=0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GPA表 -->
+      <div class="info-section">
+        <div class="info-label">GPA 成績換算表（TGU公式）</div>
+        <table class="gpa-table">
+          <tr><th>成績</th><th>グレードポイント</th><th>目安</th></tr>
+          <tr><td class="grade-s">S</td><td>4</td><td>特に優秀（90点以上）</td></tr>
+          <tr><td class="grade-a">A</td><td>3</td><td>優（80〜89点）</td></tr>
+          <tr><td class="grade-b">B</td><td>2</td><td>良（70〜79点）</td></tr>
+          <tr><td class="grade-c">C</td><td>1</td><td>可（60〜69点）</td></tr>
+          <tr><td class="grade-d">D</td><td>0</td><td>不可（59点以下）</td></tr>
+        </table>
+        <div class="step-desc" style="margin-top:8px;font-size:11px;color:#64748b">GPA = グレードポイント合計 ÷ 総履修単位数</div>
+      </div>
+
+      <!-- 各科目区分説明 -->
+      <div class="info-section">
+        <div class="info-label">科目区分について</div>
+        <div class="info-cards">
+          <div class="info-card">
+            <div class="info-card-icon">📚</div>
+            <div class="info-card-title">教養教育科目</div>
+            <div class="info-card-desc">TGベーシック・共通教養。全学部共通のキリスト教に基づく人間教育科目。</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">🌍</div>
+            <div class="info-card-title">外国語科目</div>
+            <div class="info-card-desc">英語（第1類）＋第2外国語（独・仏・中・韓など）。第1類は必修。</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">🔬</div>
+            <div class="info-card-title">専門教育科目</div>
+            <div class="info-card-desc">各学部・学科の専門科目。必修・選択必修・選択に分かれる。最も単位数が多い。</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-icon">🎯</div>
+            <div class="info-card-title">自由選択枠</div>
+            <div class="info-card-desc">体育・留学科目・他学部科目なども含めて自由に充当できる枠。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 注意事項 -->
+      <div class="warn-box">
+        ⚠️ <strong>ご注意</strong><br>
+        このツールは公式の履修細則をもとに作成していますが、科目の細かい条件（選択必修の選び方・重複充当ルール等）は学科・コースによって異なります。正確な単位管理は必ず<strong>MYTG</strong>および<strong>教務課</strong>にてご確認ください。
+      </div>
+
+    </div><!-- /help-body -->
+  </div><!-- /help-sheet -->
+</div><!-- /help-overlay -->
 
 <div class="setup">
   <div style="height:14px"></div>
@@ -1095,6 +1256,19 @@ function renderAll() {
 
 // 起動
 renderAll();
+</script>
+<script>
+function openHelp() {
+  document.getElementById('helpOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeHelp() {
+  document.getElementById('helpOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeHelpOutside(e) {
+  if (e.target === document.getElementById('helpOverlay')) closeHelp();
+}
 </script>
 </body>
 </html>
